@@ -4,10 +4,13 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import scrolledtext
 import matplotlib
+import matplotlib.pyplot as plt 
+import threading
+
+PORTA = 12345
 
 def criarFrameRede(root):
-    # O layout está como o seu, apenas renomeei o botão
-    frameRede = ttk.LabelFrame(root, text="FrameRede")
+    frameRede = ttk.LabelFrame(root)
     frameRede.pack(fill="x", padx=10, pady=5)
 
     ttk.Label(frameRede, text="IP do destino").pack(side=tk.LEFT, padx=5, pady=5)
@@ -15,147 +18,181 @@ def criarFrameRede(root):
     ipDestino = ttk.Entry(frameRede, width=40)
     ipDestino.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
 
-    # MUDANÇA: Renomeado para 'botaoConectar' e texto atualizado
     botaoConectar = ttk.Button(frameRede, text="Conectar")
     botaoConectar.pack(side=tk.RIGHT, padx=5, pady=5)
 
     return {
         "ipDestino" : ipDestino,
-        "botaoConectar" : botaoConectar # MUDANÇA: Chave atualizada
+        "botaoConectar" : botaoConectar
     }
 
-def criarFrameEmissor(root):
-    frameEmissor = ttk.LabelFrame(root, text="FrameEmissor")
-    frameEmissor.pack(fill='x', padx=10, pady=5)
+def criarFrameMensagemOriginal(root):
+    frameMensagemOriginal = ttk.LabelFrame(root)
+    frameMensagemOriginal.pack(fill="x", padx=10, pady=5)
 
-    frameMensagem = ttk.Frame(frameEmissor)
-    frameMensagem.pack(fill='x', padx=5, pady=5)
-    
-    ttk.Label(frameMensagem, text="Mensagem original:").pack(side=tk.LEFT, padx=5)
-    
-    mensagemOriginal = scrolledtext.ScrolledText(frameMensagem, height=3, width=60)
-    mensagemOriginal.pack(side=tk.LEFT, fill='x', expand=True, padx=5)
-    
-    botaoMandarCriptografar = ttk.Button(frameMensagem, text="Criptografar")
-    botaoMandarCriptografar.pack(side=tk.RIGHT, padx=5)
+    ttk.Label(frameMensagemOriginal, text="Mensagem original").pack(side=tk.LEFT, padx=5, pady=5)
 
-    frameCripto = ttk.Frame(frameEmissor)
-    frameCripto.pack(fill='x', padx=5, pady=5)
+    mensagemOriginal = ttk.Entry(frameMensagemOriginal, width=40, state="disabled")
+    mensagemOriginal.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
 
-    ttk.Label(frameCripto, text="Texto Criptografado:").pack(side=tk.LEFT, padx=5)
-    
-    textoCriptografado = scrolledtext.ScrolledText(frameCripto, height=3, width=60, state='disabled')
-    textoCriptografado.pack(side=tk.LEFT, fill='x', expand=True, padx=5)
-    
-    frameBinario = ttk.Frame(frameEmissor)
-    frameBinario.pack(fill='x', padx=5, pady=5)
-
-    ttk.Label(frameBinario, text="Sequência Binária:").pack(side=tk.LEFT, padx=5)
-    
-    textoBinario = scrolledtext.ScrolledText(frameBinario, height=3, width=60, state='disabled')
-    textoBinario.pack(side=tk.LEFT, fill='x', expand=True, padx=5)
-    
-    botaoBinario = ttk.Button(frameBinario, text="Converter")
-    botaoBinario.pack(side=tk.RIGHT, padx=5)
-
-    botaoEnviar = ttk.Button(frameEmissor, text="Enviar para destino")
-    botaoEnviar.pack(pady=10)
+    botaoCriptografar = ttk.Button(frameMensagemOriginal, text="Criptografar", state="disabled")
+    botaoCriptografar.pack(side=tk.RIGHT, padx=5, pady=5)
 
     return {
         "mensagemOriginal" : mensagemOriginal,
-        "textoCriptografado" : textoCriptografado,
-        "textoBinario" : textoBinario,
-        "botaoMandarCriptografar" : botaoMandarCriptografar, # MUDANÇA
-        "botaoBinario" : botaoBinario,
-        "botaoEnviar" : botaoEnviar
+        "botaoCriptografar" : botaoCriptografar
     }
 
+def criarFrameMensagemCriptografada(root):
+    FrameMensagemCriptografada = ttk.LabelFrame(root)
+    FrameMensagemCriptografada.pack(fill="x", padx=10, pady=5)
+
+    ttk.Label(FrameMensagemCriptografada, text="Mensagem criptografada").pack(side=tk.LEFT, padx=5, pady=5)
+
+    mensagemCriptografada = ttk.Entry(FrameMensagemCriptografada, width=40, state="disabled")
+    mensagemCriptografada.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
+
+    botaoBinario = ttk.Button(FrameMensagemCriptografada, text="Converter para binário", state="disabled")
+    botaoBinario.pack(side=tk.RIGHT, padx=5, pady=5)
+
+    return {
+        "mensagemCriptografada" : mensagemCriptografada,
+        "botaoBinario" : botaoBinario
+    }
+
+def criarFrameMensagemBinario(root):
+    FrameMensagemBinario = ttk.LabelFrame(root)
+    FrameMensagemBinario.pack(fill="x", padx=10, pady=5)
+
+    ttk.Label(FrameMensagemBinario, text="Mensagem Binario").pack(side=tk.LEFT, padx=5, pady=5)
+
+    mensagemBinario = ttk.Entry(FrameMensagemBinario, width=40, state="disabled")
+    mensagemBinario.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
+
+    botaoAlgoritmo = ttk.Button(FrameMensagemBinario, text="Aplicar Algoritmo", state="disabled")
+    botaoAlgoritmo.pack(side=tk.RIGHT, padx=5, pady=5)
+
+    return {
+        "mensagemBinario" : mensagemBinario,
+        "botaoAlgoritmo" : botaoAlgoritmo
+    }
+
+def criarFrameMensagemAlgoritmo(root):
+    FrameMensagemAlgoritmo = ttk.LabelFrame(root)
+    FrameMensagemAlgoritmo.pack(fill="x", padx=10, pady=5)
+
+    ttk.Label(FrameMensagemAlgoritmo, text="Binario do Algoritmo").pack(side=tk.LEFT, padx=5, pady=5)
+
+    mensagemAlgoritmo = ttk.Entry(FrameMensagemAlgoritmo, width=40, state="disabled")
+    mensagemAlgoritmo.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
+
+    botaoGrafico = ttk.Button(FrameMensagemAlgoritmo, text="Gerar Gráfico", state="disabled")
+    botaoGrafico.pack(side=tk.RIGHT, padx=5, pady=5)
+
+    return {
+        "mensagemAlgoritmo" : mensagemAlgoritmo,
+        "botaoGrafico" : botaoGrafico
+    }
+
+
 def onBotaoConectar(widgets):
-    """Callback para o botão 'Conectar'."""
-    print("Clicado: Conectar")
-    ipWidget = widgets["ipDestino"]
-    ipTexto = ipWidget.get().strip()
-    
+    ipTexto = widgets["ipDestino"].get().strip()
+
     if not ipTexto:
-        print("Erro: IP de destino não pode estar vazio.")
-        return
-        
-    print(f"Tentando conectar ao IP: {ipTexto}...")
-
-def onBotaoMandarCriptografar(widgets):
-    """Lê a msg original, criptografa e põe no campo 'textoCriptografado'."""
-    print("Clicado: Criptografar")
-
-    msgWidget = widgets["mensagemOriginal"]
-    criptoWidget = widgets["textoCriptografado"]
-
-    texto = msgWidget.get("1.0", tk.END).strip()
-    if not texto:
-        print("Nada para criptografar.")
+        print("Ip não digitado")
         return
 
-    chave = "segredo"
-    criptoTexto = "".join(chr(ord(c) ^ ord(chave[i % len(chave)])) for i, c in enumerate(texto))
+    threadConexao = threading.Thread(target=threadConectar, args=(widgets, ipTexto))
+    threadConexao.daemon = True
+    threadConexao.start()
 
-    criptoWidget.config(state='normal')
-    
-    # --- CORREÇÃO AQUI ---
-    criptoWidget.delete("1.0", tk.END) # Deve ser "1.0" e não "1.G"
-    # --- FIM DA CORREÇÃO ---
-    
-    criptoWidget.insert(tk.END, criptoTexto)
-    criptoWidget.config(state='disabled')
-    
-    msgWidget.delete("1.0", tk.END)
-    
-    msgWidget.delete("1.0", tk.END)
+def onBotaoCriptografar(widgets):
+    print("Clicado criptografar")
+
+    mensagemOriginal = widgets["mensagemOriginal"]
+    mensagemCriptografada = widgets["mensagemCriptografada"]
+
+    textoOriginal = mensagemOriginal.get().strip()
+
+    if not textoOriginal:
+        print("Nada para criptografar")
+        return
+
+    textoCriptografado = criptografarMensagem(textoOriginal)
+
+    mensagemCriptografada.config(state='normal')
+    mensagemCriptografada.delete(0, tk.END)
+    mensagemCriptografada.insert(tk.END, textoCriptografado)
+
+    mensagemOriginal.config(state="disabled")
+
+    widgets["botaoCriptografar"].config(state="disabled") 
+    widgets["botaoBinario"].config(state="normal")      
 
 def onBotaoBinario(widgets):
-    """Lê o texto criptografado, converte e põe no campo 'textoBinario'."""
-    print("Clicado: Converter")
-    criptoWidget = widgets["textoCriptografado"]
-    binarioWidget = widgets["textoBinario"]
+    print("Clicado converter para binario")
 
-    texto = criptoWidget.get("1.0", tk.END).strip()
-    if not texto:
-        print("Nada para converter (campo criptografado vazio).")
+    mensagemCriptografada = widgets["mensagemCriptografada"]
+    mensagemBinario = widgets["mensagemBinario"]
+
+    textoCriptografado = mensagemCriptografada.get().strip()
+
+    if not textoCriptografado:
+        print("Nada para conveter em binario")
         return
 
-    try:
-        binarioTexto = "".join(format(b, '08b') for b in texto.encode('latin-1'))
-    except Exception as e:
-        binarioTexto = f"ERRO: {e}"
+    textoBinario = converteMensagemCriptografadaEmBinario(textoCriptografado)
 
-    binarioWidget.config(state='normal')
-    binarioWidget.delete("1.0", tk.END)
-    binarioWidget.insert(tk.END, binarioTexto)
-    binarioWidget.config(state='disabled')
+    mensagemBinario.config(state='normal')
+    mensagemBinario.delete(0, tk.END)
+    mensagemBinario.insert(tk.END, textoBinario)
 
-def onBotaoEnviar(widgets):
-    """Lê o IP e o texto binário final para enviar."""
-    print("Clicado: Enviar")
-    ipWidget = widgets["ipDestino"]
-    binarioWidget = widgets["textoBinario"]
+    mensagemCriptografada.config(state="disabled")     
+    widgets["botaoBinario"].config(state="disabled") 
+    widgets["botaoAlgoritmo"].config(state="normal") 
 
-    ipTexto = ipWidget.get().strip()
-    binarioTexto = binarioWidget.get("1.0", tk.END).strip()
+def onBotaoAlgoritmo(widgets):
+    print("clicado no botão algoritmo")
 
-    if not ipTexto or not binarioTexto:
-        print("Erro: IP ou dados binários estão faltando.")
+    mensagemBinarioWidget = widgets["mensagemBinario"]
+    textoBinario = mensagemBinarioWidget.get().strip()
+
+    if not textoBinario:
+        print("Nada para aplicar algoritmo")
         return
-        
-    print(f"Enviando dados para: {ipTexto}")
-    print(f"Dados (primeiros 50 chars): {binarioTexto[:50]}...")
-        
-    binarioWidget.config(state='normal')
-    binarioWidget.delete("1.0", tk.END)
-    binarioWidget.config(state='disabled')
+
+    sinalCodificado = aplicarAlgoritmo(textoBinario) 
+
+    sinalString = ",".join(map(str, sinalCodificado)) 
+
+    mensagemAlgoritmoWidget = widgets["mensagemAlgoritmo"]
+    mensagemAlgoritmoWidget.config(state='normal')
+    mensagemAlgoritmoWidget.delete(0, tk.END)
+    mensagemAlgoritmoWidget.insert(tk.END, sinalString)
+
+    mensagemBinarioWidget.config(state='disabled') 
+    widgets["botaoAlgoritmo"].config(state='disabled') 
+    widgets["botaoGrafico"].config(state='normal') 
+
+def onBotaoGrafico(widgets):
+    print("Clicado: Gerar Gráfico")
     
-    criptoWidget = widgets["textoCriptografado"]
-    criptoWidget.config(state='normal')
-    criptoWidget.delete("1.0", tk.END)
-    criptoWidget.config(state='disabled')
-
+    sinalString = widgets["mensagemAlgoritmo"].get().strip()
+    if not sinalString:
+        print("Nada para gerar o gráfico")
+        return
+        
+    try:
+        pontos = [int(p) for p in sinalString.split(',')]
+        
+        gerarGrafico(pontos)
+        print("Gráfico 'sinal_manchester.png' salvo com sucesso!")
+        
+    except Exception as e:
+        print(f"Erro ao gerar gráfico: {e}")
+        
+    widgets["mensagemAlgoritmo"].config(state='disabled')
+    widgets["botaoGrafico"].config(state='disabled')
 
 def criarInterfaceGrafica():
     root = tk.Tk()
@@ -167,27 +204,140 @@ def criarInterfaceGrafica():
     widgetsRede = criarFrameRede(root)
     widgets.update(widgetsRede)
 
-    widgetsEmissor = criarFrameEmissor(root)
-    widgets.update(widgetsEmissor)
+    widgetsMensagemOriginal = criarFrameMensagemOriginal(root)
+    widgets.update(widgetsMensagemOriginal)
 
-    # --- Conecta TODOS os botões ---
-    widgets["botaoConectar"].config(
+    widgetsMensagemCriptografada = criarFrameMensagemCriptografada(root)
+    widgets.update(widgetsMensagemCriptografada)
+
+    widgetsMensagemBinario = criarFrameMensagemBinario(root)
+    widgets.update(widgetsMensagemBinario)
+
+    widgetsMensagemAlgoritmo = criarFrameMensagemAlgoritmo(root)
+    widgets.update(widgetsMensagemAlgoritmo)
+
+    botaoConectar = widgets["botaoConectar"]
+    botaoCriptografar = widgets["botaoCriptografar"]
+    botaoBinario = widgets["botaoBinario"]
+    botaoAlgoritmo = widgets["botaoAlgoritmo"]
+    botaoGrafico = widgets["botaoGrafico"]
+
+    botaoConectar.config(
         command=lambda : onBotaoConectar(widgets)
     )
-
-    widgets["botaoMandarCriptografar"].config(
-        command=lambda : onBotaoMandarCriptografar(widgets)
-    )
     
-    widgets["botaoBinario"].config(
+    botaoCriptografar.config(
+        command=lambda : onBotaoCriptografar(widgets)
+    )
+
+    botaoBinario.config(
         command=lambda : onBotaoBinario(widgets)
     )
+    
+    botaoAlgoritmo.config(
+        command=lambda : onBotaoAlgoritmo(widgets)
+    )
 
-    widgets["botaoEnviar"].config(
-        command=lambda : onBotaoEnviar(widgets)
+    botaoGrafico.config (
+        command=lambda : onBotaoGrafico(widgets)
     )
 
     return root
+
+def threadConectar(widgets, ipTexto):
+    clienteSocket = conectarAoServidor(ipTexto)
+
+    if clienteSocket:
+        widgets["socketCliente"] = clienteSocket
+        widgets["ipDestino"].config(state="disabled")
+        widgets["botaoConectar"].config(state="disabled")
+
+        widgets["mensagemOriginal"].config(state="normal")
+        widgets["botaoCriptografar"].config(state="normal")
+    else:
+        print("Falha na conexao.")
+
+def conectarAoServidor(mensagem):
+    print(f"Tentando conectar ao IP: {mensagem} na porta {PORTA}")
+    
+    try:
+        clienteSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clienteSocket.settimeout(5.0)
+        clienteSocket.connect((mensagem, PORTA))
+
+        print("CONECTADO COM SUCESSO")
+
+        return clienteSocket
+    except socket.timeout:
+        print("Tempo esgotado")
+    except socket.error as e:
+        print(f"Erro: {e}")
+    except Exception as e:
+        print(f"Erro: {e}")
+
+def criptografarMensagem(mensagem):
+    chave = "segredo"
+
+    bytesMensagem = mensagem.encode('latin-1')
+    bytesChave = chave.encode('latin-1')
+
+    listaBytesCriptografado = []
+
+    for i in range(len(bytesMensagem)):
+        byteMensagem = bytesMensagem[i]
+        byteChave = bytesChave[i % len(bytesChave)]
+
+        byteCriptografado = (byteMensagem + byteChave) % 256
+        listaBytesCriptografado.append(byteCriptografado)
+    
+    textoCriptografado = bytes(listaBytesCriptografado).decode('latin-1')
+    return textoCriptografado
+
+def converteMensagemCriptografadaEmBinario(mensagemCriptografada):
+    bytesMensagem = mensagemCriptografada.encode('latin-1')
+    binarioMensagem = ""
+
+    for b in bytesMensagem:
+        binarioMensagem += format(b, '08b')
+
+    return binarioMensagem
+
+def aplicarAlgoritmo(mensagemBinaria):
+    sinalCodificado = []
+
+    for bit in mensagemBinaria:
+        if bit == '0':
+            sinalCodificado.extend([1, -1])
+        elif bit == '1':
+            sinalCodificado.extend([-1, 1])
+        else:
+            pass
+    return sinalCodificado
+
+def gerarGrafico(pontos):
+    if not pontos:
+        print("Não há pontos para gerar o gráfico.")
+        return
+
+    pontos_x = [i * 0.5 for i in range(len(pontos))]
+
+    plt.figure(figsize=(15, 4))
+    plt.plot(pontos_x, pontos, drawstyle='steps-post', color='red')
+
+    plt.title("Sinal Manchester (Codificado)")
+    plt.xlabel("Tempo (em unidades de bit)")
+    plt.ylabel("Nível de Tensão")
+    plt.ylim(-1.5, 1.5) 
+    plt.grid(True) 
+    
+    bits_totais = len(pontos) // 2
+    for i in range(bits_totais + 1):
+        plt.axvline(i, color='gray', linestyle='--', linewidth=0.5)
+
+    nome_arquivo = "sinal_manchester.png"
+    plt.savefig(nome_arquivo)
+    
+    plt.close()
 
 def main():
     root = criarInterfaceGrafica()
