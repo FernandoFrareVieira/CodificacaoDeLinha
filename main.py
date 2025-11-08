@@ -1,8 +1,9 @@
 import socket
 import json
-import ttkbootstrap as tk
-from ttkbootstrap import ttk
+import tkinter as tk
+from tkinter import ttk
 from tkinter import scrolledtext
+import ttkbootstrap
 import matplotlib
 import matplotlib.pyplot as plt 
 import threading
@@ -377,7 +378,7 @@ def onBotaoDescriptografar(widgets):
     widgets["botaoDescriptografar"].config(state='disabled')
 
 def criarInterfaceGrafica():
-    root = tk.Window(themename="superhero") 
+    root = ttkbootstrap.Window(themename="superhero")    
     root.title("Codificação de Linha")
     root.geometry("1920x1080")
 
