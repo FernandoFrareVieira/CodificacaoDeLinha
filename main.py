@@ -1,7 +1,7 @@
 import socket
 import json
-import tkinter as tk
-from tkinter import ttk
+import ttkbootstrap as tk
+from ttkbootstrap import ttk
 from tkinter import scrolledtext
 import matplotlib
 import matplotlib.pyplot as plt 
@@ -369,7 +369,7 @@ def onBotaoDescriptografar(widgets):
     
     textoOriginal = descriptografarMensagem(textoCriptografado)
     
-    widgets["mensagemOriginal"].config(state='normal')
+    widgets["mensagemOriginal"].config(state='normal')  
     widgets["mensagemOriginal"].delete(0, tk.END)
     widgets["mensagemOriginal"].insert(0, textoOriginal)
 
@@ -377,9 +377,9 @@ def onBotaoDescriptografar(widgets):
     widgets["botaoDescriptografar"].config(state='disabled')
 
 def criarInterfaceGrafica():
-    root = tk.Tk()
+    root = tk.Window(themename="superhero") 
     root.title("Codificação de Linha")
-    root.geometry("1600x900")
+    root.geometry("1920x1080")
 
     widgets = {}
 
@@ -538,6 +538,8 @@ def iniciarServidor():
     servidorSocket = None
     try:
         servidorSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        servidorSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
         servidorSocket.bind(('0.0.0.0', PORTA))
         servidorSocket.listen(1)
         print(f"Servidor iniciado na porta {PORTA}. Esperando conexão...")
