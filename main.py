@@ -20,7 +20,6 @@ def criarFrameRede(root):
     ipDestino = ttk.Entry(frameRede, width=40)
     ipDestino.pack(side=tk.LEFT, padx=5, pady=5, fill="x", expand=True)
 
-
     botaoServidor = ttk.Button(frameRede, text="Iniciar Servidor")
     botaoServidor.pack(side=tk.RIGHT, padx=5, pady=5)
 
@@ -120,12 +119,19 @@ def criarFrameGrafico(root):
     labelGrafico = ttk.Label(frameGrafico, anchor="center", justify="center")
     labelGrafico.pack(pady=10)
 
-    botaoEnviarSinal = ttk.Button(frameGrafico, text="Enviar Sinal", state="disabled")
-    botaoEnviarSinal.pack(pady=10)
+    frameBotoes = ttk.Frame(frameGrafico)
+    frameBotoes.pack(pady=10, fill="x", expand=True) 
 
+    botaoEnviarSinal = ttk.Button(frameBotoes, text="Enviar Sinal", state="disabled")
+    botaoVerSinal = ttk.Button(frameBotoes, text="Ver Sinal", state="disabled")
+    
+    botaoEnviarSinal.pack(side=tk.LEFT, padx=10, expand=True)
+    botaoVerSinal.pack(side=tk.RIGHT, padx=10, expand=True)
+    
     return {
         "labelGrafico" : labelGrafico,
-        "botaoEnviarSinal" : botaoEnviarSinal
+        "botaoEnviarSinal" : botaoEnviarSinal,
+        "botaoVerSinal" : botaoVerSinal 
     }
 
 
@@ -290,6 +296,25 @@ def onBotaoEnviarSinal(widgets):
     widgets["mensagemAlgoritmo"].config(state='normal')
     widgets["mensagemAlgoritmo"].config(state='disabled')
 
+def onBotaoVerSinal(widgets):
+    print("Clicado: Ver Sinal")
+    
+    try:
+        sinalCodificado = widgets["sinal_recebido"]
+        textoSinal = ",".join(map(str, sinalCodificado))
+        
+        widgets["mensagemAlgoritmo"].config(state='normal')
+        widgets["mensagemAlgoritmo"].delete(0, tk.END)
+        widgets["mensagemAlgoritmo"].insert(0, textoSinal)
+
+        widgets["botaoDecodificarSinal"].config(state='normal')
+        widgets["botaoVerSinal"].config(state='disabled') 
+        
+    except KeyError:
+        print("Erro: 'sinal_recebido' não encontrado. O servidor recebeu dados?")
+    except Exception as e:
+        print(f"Erro ao mostrar sinal: {e}")
+
 def onBotaoDecodificarSinal(widgets):
     print("Clicado: Decodificar Sinal")
     
@@ -382,6 +407,7 @@ def criarInterfaceGrafica():
     botaoAlgoritmo = widgets["botaoAlgoritmo"]
     botaoGrafico = widgets["botaoGrafico"]
     botaoEnviarSinal = widgets["botaoEnviarSinal"] 
+    botaoVerSinal = widgets["botaoVerSinal"]
     botaoServidor = widgets["botaoServidor"]
     
     botaoDecodificarSinal = widgets["botaoDecodificarSinal"]
@@ -432,6 +458,10 @@ def criarInterfaceGrafica():
         command=lambda : onBotaoDescriptografar(widgets)
     )
 
+    botaoVerSinal.config(
+        command=lambda : onBotaoVerSinal(widgets)
+    )
+
     return root
 
 def threadConectar(widgets, ipTexto):
@@ -478,16 +508,21 @@ def threadServidor(widgets):
             stringSinal = dadosRecebidos.decode('utf-8')
             sinalCodificado = json.loads(stringSinal)
 
-            textoSinal = ",".join(map(str, sinalCodificado))
-            
-            widgets["mensagemAlgoritmo"].config(state='normal')
-            widgets["mensagemAlgoritmo"].delete(0, tk.END)
-            widgets["mensagemAlgoritmo"].insert(0, textoSinal)
-            widgets["mensagemAlgoritmo"].config(state='disabled')
+            labelGrafico = widgets["labelGrafico"]
+            nomeArquivo = "sinal_recebido.png" 
 
-            widgets["botaoDecodificarSinal"].config(state='normal')
+            gerarGrafico(sinalCodificado, nomeArquivo)
+            print(f"Gráfico '{nomeArquivo}' salvo e exibido!")
+
+            caminhoCompleto = os.path.abspath(nomeArquivo)
+            imagem = Image.open(caminhoCompleto)
+            foto = ImageTk.PhotoImage(imagem)
+            labelGrafico.config(image=foto)
+            labelGrafico.image = foto 
             
-            print("Dados recebidos e inseridos na GUI. Pronto para decodificar.")
+            widgets["sinal_recebido"] = sinalCodificado 
+            
+            widgets["botaoVerSinal"].config(state='normal')
 
         except json.JSONDecodeError:
             print("Erro fatal: Os dados recebidos não são um JSON válido.")
